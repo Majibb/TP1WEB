@@ -1,11 +1,11 @@
 
-.BookmarkRow {
+.NouvelleRow {
     padding: 8px;
     padding-bottom: 0px;
     scroll-snap-align: start;
 }
 
-.BookmarkContainer {
+.NouvelleContainer {
     display: grid;
     grid-template-columns: 4fr 1fr;
     align-items: top;
@@ -13,15 +13,15 @@
     border-radius: 6px;
 }
 
-.BookmarkContainer .cmdIcon {
+.NouvelleContainer .cmdIcon {
     display: none;
 }
 
-.BookmarkContainer:hover .cmdIcon {
+.NouvelleContainer:hover .cmdIcon {
     display: block;
 }
 
-.BookmarkLayout {
+.NouvelleLayout {
     display: grid;
     grid-template-columns: 1fr;
     padding: 10px;
@@ -34,17 +34,17 @@
     grid-template-columns: 30px auto;
 }
 
-.BookmarkTitle {
+.NouvelleTitle {
     font-size: 1.1rem;
     font-weight: bold;
     color: black;
 }
 
-.BookmarkCategory {
+.NouvelleCategory {
     color: dodgerblue !important;
 }
 
-.BookmarkCommandPanel {
+.NouvelleCommandPanel {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;

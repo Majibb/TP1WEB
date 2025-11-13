@@ -24,9 +24,9 @@ function Init_UI() {
 function start_Periodic_Refresh() {
     setInterval(async () => {
         if (!hold_Periodic_Refresh) {
-            await Bookmarks_API.Head();
-            if (currentETag != Bookmarks_API.Etag) {
-                currentETag = Bookmarks_API.Etag;
+            await Nouvelles_API.Head();
+            if (currentETag != Nouvelles_API.Etag) {
+                currentETag = Nouvelles_API.Etag;
                 saveContentScrollPosition();
                 renderBookmarks();
             }
@@ -114,8 +114,8 @@ async function renderBookmarks() {
     $("#createBookmark").show();
     $("#dropdownMenu").show();
     $("#abort").hide();
-    let Bookmarks = await Bookmarks_API.Get();
-    currentETag = Bookmarks_API.Etag;
+    let Bookmarks = await Nouvelles_API.Get();
+    currentETag = Nouvelles_API.Etag;
     compileCategories(Bookmarks)
     eraseContent();
     if (Bookmarks !== null) {
@@ -152,7 +152,7 @@ function restoreContentScrollPosition() {
     $("#content")[0].scrollTop = contentScrollPosition;
 }
 function renderError(message = "") {
-    message = (message == "" ? Bookmarks_API.currentHttpError : message);
+    message = (message == "" ? Nouvelles_API.currentHttpError : message);
     eraseContent();
     $("#content").append(
         $(`
@@ -167,7 +167,7 @@ function renderCreateBookmarkForm() {
 }
 async function renderEditBookmarkForm(id) {
     showWaitingGif();
-    let Bookmark = await Bookmarks_API.Get(id);
+    let Bookmark = await Nouvelles_API.Get(id);
     if (Bookmark !== null)
         renderBookmarkForm(Bookmark);
     else
@@ -179,7 +179,7 @@ async function renderDeleteBookmarkForm(id) {
     $("#dropdownMenu").hide();
     $("#abort").show();
     $("#actionTitle").text("Retrait");
-    let Bookmark = await Bookmarks_API.Get(id);
+    let Bookmark = await Nouvelles_API.Get(id);
     let favicon = makeFavicon(Bookmark.Url);
     eraseContent();
     if (Bookmark !== null) {
@@ -187,14 +187,14 @@ async function renderDeleteBookmarkForm(id) {
         <div class="BookmarkdeleteForm">
             <h4>Effacer le favori suivant?</h4>
             <br>
-            <div class="BookmarkRow" Bookmark_id=${Bookmark.Id}">
-                <div class="BookmarkContainer noselect">
-                    <div class="BookmarkLayout">
+            <div class="NouvelleRow" Bookmark_id=${Bookmark.Id}">
+                <div class="NouvelleContainer noselect">
+                    <div class="NouvelleLayout">
                         <div class="Bookmark">
                             <a href="${Bookmark.Url}" target="_blank"> ${favicon} </a>
-                            <span class="BookmarkTitle">${Bookmark.Title}</span>
+                            <span class="NouvelleTitle">${Bookmark.Title}</span>
                         </div>
-                        <span class="BookmarkCategory">${Bookmark.Category}</span>
+                        <span class="NouvelleCategory">${Bookmark.Category}</span>
                     </div>
                 </div>
             </div>   
@@ -205,7 +205,7 @@ async function renderDeleteBookmarkForm(id) {
         `);
         $('#deleteBookmark').on("click", async function () {
             showWaitingGif();
-            let result = await Bookmarks_API.Delete(Bookmark.Id);
+            let result = await Nouvelles_API.Delete(Bookmark.Id);
             if (result)
                 renderBookmarks();
             else
@@ -301,11 +301,11 @@ function renderBookmarkForm(Bookmark = null) {
         let Bookmark = getFormData($("#BookmarkForm"));
         Bookmark.Id = parseInt(Bookmark.Id);
         showWaitingGif();
-        let result = await Bookmarks_API.Save(Bookmark, create);
+        let result = await Nouvelles_API.Save(Bookmark, create);
         if (result)
             renderBookmarks();
         else {
-            if (Bookmarks_API.currentStatus == 409)
+            if (Nouvelles_API.currentStatus == 409)
                 renderError("Erreur: Conflits de titres...");
             else
                 renderError();
@@ -328,16 +328,16 @@ function makeFavicon(url, big = false) {
 function renderBookmark(Bookmark) {
     let favicon = makeFavicon(Bookmark.Url);
     return $(`
-     <div class="BookmarkRow" Bookmark_id=${Bookmark.Id}">
-        <div class="BookmarkContainer noselect">
-            <div class="BookmarkLayout">
+     <div class="NouvelleRow" Bookmark_id=${Bookmark.Id}">
+        <div class="NouvelleContainer noselect">
+            <div class="NouvelleLayout">
                 <div class="Bookmark">
                     <a href="${Bookmark.Url}" target="_blank"> ${favicon} </a>
-                    <span class="BookmarkTitle">${Bookmark.Title}</span>
+                    <span class="NouvelleTitle">${Bookmark.Title}</span>
                 </div>
-                <span class="BookmarkCategory">${Bookmark.Category}</span>
+                <span class="NouvelleCategory">${Bookmark.Category}</span>
             </div>
-            <div class="BookmarkCommandPanel">
+            <div class="NouvelleCommandPanel">
                 <span class="editCmd cmdIcon fa fa-pencil" editBookmarkId="${Bookmark.Id}" title="Modifier ${Bookmark.Title}"></span>
                 <span class="deleteCmd cmdIcon fa fa-trash" deleteBookmarkId="${Bookmark.Id}" title="Effacer ${Bookmark.Title}"></span>
             </div>

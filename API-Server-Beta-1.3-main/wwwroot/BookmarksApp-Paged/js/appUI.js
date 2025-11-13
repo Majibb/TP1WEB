@@ -185,14 +185,14 @@ async function renderDeleteBookmarkForm(id) {
             <div class="BookmarkdeleteForm">
                 <h4>Effacer le favori suivant?</h4>
                 <br>
-                <div class="BookmarkRow" id=${Bookmark.Id}">
-                    <div class="BookmarkContainer noselect">
-                        <div class="BookmarkLayout">
+                <div class="NouvelleRow" id=${Bookmark.Id}">
+                    <div class="NouvelleContainer noselect">
+                        <div class="NouvelleLayout">
                             <div class="Bookmark">
                                 <a href="${Bookmark.Url}" target="_blank"> ${favicon} </a>
-                                <span class="BookmarkTitle">${Bookmark.Title}</span>
+                                <span class="NouvelleTitle">${Bookmark.Title}</span>
                             </div>
-                            <span class="BookmarkCategory">${Bookmark.Category}</span>
+                            <span class="NouvelleCategory">${Bookmark.Category}</span>
                         </div>
                      </div>
                 </div>   
@@ -327,16 +327,16 @@ function makeFavicon(url, big = false) {
 function renderBookmark(Bookmark) {
     let favicon = makeFavicon(Bookmark.Url);
     return $(`
-     <div class="BookmarkRow" id='${Bookmark.Id}'>
-        <div class="BookmarkContainer noselect">
-            <div class="BookmarkLayout">
+     <div class="NouvelleRow" id='${Bookmark.Id}'>
+        <div class="NouvelleContainer noselect">
+            <div class="NouvelleLayout">
                 <div class="Bookmark">
                     <a href="${Bookmark.Url}" target="_blank"> ${favicon} </a>
-                    <span class="BookmarkTitle">${Bookmark.Title}</span>
+                    <span class="NouvelleTitle">${Bookmark.Title}</span>
                 </div>
-                <span class="BookmarkCategory">${Bookmark.Category}</span>
+                <span class="NouvelleCategory">${Bookmark.Category}</span>
             </div>
-            <div class="BookmarkCommandPanel">
+            <div class="NouvelleCommandPanel">
                 <span class="editCmd cmdIcon fa fa-pencil" editBookmarkId="${Bookmark.Id}" title="Modifier ${Bookmark.Title}"></span>
                 <span class="deleteCmd cmdIcon fa fa-trash" deleteBookmarkId="${Bookmark.Id}" title="Effacer ${Bookmark.Title}"></span>
             </div>
