@@ -152,7 +152,7 @@ async function compileCategories() {
 async function renderNouvelles(container, queryString) {
     deleteError();
     let endOfData = false;
-    queryString += "&sort=category,title";
+    queryString += "&sort=-Creation,title";
     if (selectedCategory != "") queryString += "&category=" + selectedCategory;
     if (search != "") queryString += "&keywords=" + search;
     addWaitingGif();
@@ -287,8 +287,10 @@ function newNouvelle() {
 function renderNouvelleForm(Nouvelle = null) {
     hideNouvelles();
     let create = Nouvelle == null;
-    if (create)
+    if (create) {
         Nouvelle = newNouvelle();
+        Nouvelle.Image = "/assetsRepository/news-logo-upload.png";
+    }
     $("#actionTitle").text(create ? "Création" : "Modification");
     $("#nouvelleForm").show();
     $("#nouvelleForm").empty();
@@ -310,7 +312,7 @@ function renderNouvelleForm(Nouvelle = null) {
 
             <label for="Title" class="form-label">Titre </label>
             <input 
-                class="form-control Alpha"
+                class="form-control"
                 name="Title" 
                 id="Title" 
                 placeholder="Titre"
@@ -331,10 +333,10 @@ function renderNouvelleForm(Nouvelle = null) {
             
            <!-- nécessite le fichier javascript 'imageControl.js' -->
             <label for="Image" class="form-label">Image </label>
-            <div   class='imageUploader' 
+             <div   class='imageUploader' 
                    newImage='${create}' 
                    controlId='Image' 
-                   imageSrc='${Nouvelle.Image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"}' 
+                   imageSrc='${Nouvelle.Image}' 
                    waitingImage="Loading_icon.gif">
             </div>
             
@@ -342,29 +344,23 @@ function renderNouvelleForm(Nouvelle = null) {
          
         </form>
     `);
-
-    initFormValidation();
     initImageUploaders()
+    initFormValidation();
+
 
     $('#NouvelleForm').on("submit", async function (event) {
         event.preventDefault();
-        // On fusionne les données du formulaire (getFormData) avec l'objet Nouvelle existant
-        // pour s'assurer de conserver les champs qui ne sont pas dans le formulaire, comme l'Id.
-        // Notons que le champ 'Creation' est maintenant dans le formulaire (en caché).
         let Nouvelle = getFormData($("#NouvelleForm"));
         let imageValue = $('#Image').val();
 
         if (imageValue) {
             Nouvelle.Image = imageValue;
         }
-
-        // Vérifier qu'une image a été sélectionnée si c'est une création
+        Nouvelle = await Nouvelles_API.Save(Nouvelle, create);
         if (create && !Nouvelle.Image) {
             alert('Veuillez sélectionner une image');
             return;
         }
-
-        Nouvelle = await Nouvelles_API.Save(Nouvelle, create);
 
 
         if (!Nouvelles_API.error) {
@@ -381,17 +377,6 @@ function renderNouvelleForm(Nouvelle = null) {
     });
 }
 
-function makeFavicon(url, big = false) {
-    // Utiliser l'API de google pour extraire le favicon du site pointé par url
-    // retourne un élément div comportant le favicon en tant qu'image de fond
-    ///////////////////////////////////////////////////////////////////////////
-    if (url.slice(-1) != "/") url += "/";
-    let faviconClass = "favicon";
-    if (big) faviconClass = "big-favicon";
-    url = "http://www.google.com/s2/favicons?sz=64&domain=" + url;
-    return `<div class="${faviconClass}" style="background-image: url('${url}');"></div>`;
-}
-
 function renderNouvelle(Nouvelle) {
     let nouvelleElement = $(`
     <div class="NouvelleRow" id='${Nouvelle.Id}'>
@@ -403,6 +388,7 @@ function renderNouvelle(Nouvelle) {
                     <span class="NouvelleTitle">${Nouvelle.Title}</span>
                 </div>
                 <span class="NouvelleCategory">${Nouvelle.Category}</span>
+                <span class="NouvelleDate">${Nouvelle.Text}</span>
                 <span class="NouvelleDate">${convertToFrenchDate(Nouvelle.Creation)}</span>
             </div>
             <div class="NouvelleCommandPanel">
