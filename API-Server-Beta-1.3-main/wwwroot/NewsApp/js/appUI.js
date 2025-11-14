@@ -1,6 +1,7 @@
 const periodicRefreshPeriod = 10;
 let categories = [];
 let selectedCategory = "";
+let search = "";
 let pageManager;
 let itemLayout;
 
@@ -10,9 +11,11 @@ let waitingGifTrigger = 2000;
 function addWaitingGif() {
     clearTimeout(waiting);
     waiting = setTimeout(() => {
-        $("#itemsPanel").append($("<div id='waitingGif' class='waitingGifcontainer'><img class='waitingGif' src='Loading_icon.gif' /></div>'"));
+        $("#itemsPanel").append($("<div id='waitingGif' class='waitingGifcontainer'>" +
+            "<img class='waitingGif' src='Loading_icon.gif' /></div>'"));
     }, waitingGifTrigger)
 }
+
 function removeWaitingGif() {
     clearTimeout(waiting);
     $("#waitingGif").remove();
@@ -33,25 +36,54 @@ async function Init_UI() {
     $('#aboutCmd').on("click", function () {
         renderAbout();
     });
+    $("#searchCmd").on("change", () => {
+        doSearch();
+    });
+    $('#doSearch').on('click', () => {
+        doSearch();
+    });
+
     ShowNouvelles();
 
-    Nouvelles_API.start_Periodic_Refresh(async () => { await pageManager.update(); });
+    Nouvelles_API.start_Periodic_Refresh(async () => {
+        await pageManager.update();
+    });
 }
+
+function doSearch() {
+    search = $("#searchCmd").val();
+    pageManager.reset();
+}
+
 function ShowNouvelles() {
     $("#actionTitle").text("Fil de nouvelles");
     $("#scrollPanel").show();
-    $('#abort').hide();
-    $('#nouvelleForm').hide();
-    $('#aboutContainer').hide();
+    $("#nouvelleForm").hide();
+    $("#aboutContainer").hide();
+    $("#search").show();
+    $("#searchCmd").val(search);
+
+
+    // header actions
     $("#createNouvelle").show();
-    $('#categoriesMenu').show()
+    $("#categoriesMenu").show();
+    $("#saveNouvelle").hide();
+    $("#deleteNouvelle").hide();
+    $("#cancel").hide();
+
     Nouvelles_API.resume_Periodic_Refresh();
 }
+
 function hideNouvelles() {
     $("#scrollPanel").hide();
     $("#createNouvelle").hide();
-    $('#categoriesMenu').hide();
-    $("#abort").show();
+    $("#categoriesMenu").hide();
+
+    // header actions
+    $("#saveNouvelle").show();
+    $("#cancel").show();
+    $("#deleteNouvelle").hide();
+
     Nouvelles_API.stop_Periodic_Refresh();
 }
 
@@ -60,6 +92,7 @@ function renderAbout() {
     $("#actionTitle").text("À propos...");
     $("#aboutContainer").show();
 }
+
 function updateDropDownMenu() {
     let DDMenu = $("#DDMenu");
     let selectClass = selectedCategory === "" ? "fa-check" : "fa-fw";
@@ -100,6 +133,7 @@ function updateDropDownMenu() {
         pageManager.reset();
     });
 }
+
 async function compileCategories() {
     categories = [];
     let response = await Nouvelles_API.GetQuery("?select=category&sort=category");
@@ -114,11 +148,13 @@ async function compileCategories() {
         }
     }
 }
+
 async function renderNouvelles(container, queryString) {
     deleteError();
     let endOfData = false;
     queryString += "&sort=category,title";
     if (selectedCategory != "") queryString += "&category=" + selectedCategory;
+    if (search != "") queryString += "&keywords=" + search;
     addWaitingGif();
     compileCategories();
     let response = await Nouvelles_API.Get(queryString);
@@ -144,12 +180,15 @@ function renderError(message) {
     $("#errorContainer").show();
     $("#errorContainer").append($(`<div>${message}</div>`));
 }
+
 function deleteError() {
     $("#errorContainer").empty();
 }
+
 function renderCreateNouvelleForm() {
     renderNouvelleForm();
 }
+
 async function renderEditNouvelleForm(id) {
     addWaitingGif();
     let response = await Nouvelles_API.Get(id)
@@ -164,9 +203,15 @@ async function renderEditNouvelleForm(id) {
     }
     removeWaitingGif();
 }
+
 async function renderDeleteNouvelleForm(id) {
     hideNouvelles();
     $("#actionTitle").text("Retrait");
+    $("#saveNouvelle").hide();
+
+    $("#deleteNouvelle").show();
+    $("#cancel").show();
+
     $('#nouvelleForm').show();
     $('#nouvelleForm').empty();
     let response = await Nouvelles_API.Get(id)
@@ -175,32 +220,35 @@ async function renderDeleteNouvelleForm(id) {
         if (Nouvelle !== null) {
             $("#nouvelleForm").append(`
             <div class="NouvelledeleteForm">
-                <h4>Effacer la nouvelle?</h4>
+                
                 <br>
                 <div class="NouvelleRow" id="${Nouvelle.Id}">
                     <div class="NouvelleContainer noselect">
                         <div class="NouvelleLayout">
+                            <img class="NouvelleImage" src="${Nouvelle.Image}" alt="Image pour ${Nouvelle.Title}">
                             <div class="Nouvelle">
                                 
                                 <span class="NouvelleTitle">${Nouvelle.Title}</span>
                             </div>
+                            <span class="NouvelleTitle">${Nouvelle.Text}</span>
                             <span class="NouvelleCategory">${Nouvelle.Category}</span>
                         </div>
                      </div>
                 </div>   
                 <br>
-                <input type="button" value="Effacer" id="deleteNouvelle" class="btn btn-primary">
-                <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
+                
+               
             </div>    
             `);
             $('#deleteNouvelle').on("click", async function () {
+
+                $(this).off("click");
                 await Nouvelles_API.Delete(Nouvelle.Id);
                 if (!Nouvelles_API.error) {
                     ShowNouvelles();
                     await pageManager.update();
                     compileCategories();
-                }
-                else {
+                } else {
                     console.log(Nouvelles_API.currentHttpError)
                     renderError("Une erreur est survenue!");
                 }
@@ -215,6 +263,7 @@ async function renderDeleteNouvelleForm(id) {
     } else
         renderError(Nouvelles_API.currentHttpError);
 }
+
 function getFormData($form) {
     const removeTag = new RegExp("(<[a-zA-Z0-9]+>)|(</[a-zA-Z0-9]+>)", "g");
     var jsonObject = {};
@@ -223,6 +272,7 @@ function getFormData($form) {
     });
     return jsonObject;
 }
+
 function newNouvelle() {
     Nouvelle = {};
     Nouvelle.Id = 0;
@@ -230,7 +280,7 @@ function newNouvelle() {
     Nouvelle.Category = "";
     Nouvelle.Text = "";
     Nouvelle.Image = "";
-    Nouvelle.Created= Date.now();
+    Nouvelle.Creation = Date.now();
     return Nouvelle;
 }
 
@@ -246,6 +296,7 @@ function renderNouvelleForm(Nouvelle = null) {
         <form class="form" id="NouvelleForm">
             <br>
             <input type="hidden" name="Id" value="${Nouvelle.Id}"/>
+            <input type="hidden" name="Creation" value="${Nouvelle.Creation}"/>
             
             <label for="Category" class="form-label">Catégorie </label>
             <input 
@@ -263,9 +314,7 @@ function renderNouvelleForm(Nouvelle = null) {
                 name="Title" 
                 id="Title" 
                 placeholder="Titre"
-                required
-                RequireMessage="Veuillez entrer un titre"
-                InvalidMessage="Le titre comporte un caractère illégal"
+             
                 value="${Nouvelle.Title}"
             />
             
@@ -280,66 +329,34 @@ function renderNouvelleForm(Nouvelle = null) {
                 RequireMessage="Veuillez entrer un texte"
             >${Nouvelle.Text}</textarea>
             
-            <label for="ImageFile" class="form-label">Image </label>
-            <input 
-                type="file"
-                class="form-control"
-                id="ImageFile"
-                accept="image/*"
-            />
-            
-            <!-- Champ caché pour stocker l'image en base64 -->
-            <input type="hidden" name="Image" id="ImageData" value="${Nouvelle.Image}"/>
-            
-            <div id="imagePreview" class="mt-3" style="max-width: 300px;">
-                ${Nouvelle.Image ? `<img src="${Nouvelle.Image}" class="img-fluid" alt="Aperçu"/>` : ''}
+           <!-- nécessite le fichier javascript 'imageControl.js' -->
+            <label for="Image" class="form-label">Image </label>
+            <div   class='imageUploader' 
+                   newImage='${create}' 
+                   controlId='Image' 
+                   imageSrc='${Nouvelle.Image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"}' 
+                   waitingImage="Loading_icon.gif">
             </div>
             
             <br>
-            <input type="submit" value="Enregistrer" id="saveNouvelle" class="btn btn-primary">
-            <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
+         
         </form>
     `);
 
     initFormValidation();
-
-    // Gérer le changement de fichier image
-    $('#ImageFile').on("change", function (event) {
-        const file = event.target.files[0];
-        if (file) {
-            // Vérifier que c'est bien une image
-            if (!file.type.startsWith('image/')) {
-                alert('Veuillez sélectionner un fichier image valide');
-                $(this).val(''); // Réinitialiser l'input
-                return;
-            }
-
-            // Vérifier la taille (max 1MB)
-            if (file.size > 1024 * 1024) {
-                alert('L\'image est trop volumineuse. Taille maximum: 1MB');
-                $(this).val(''); // Réinitialiser l'input
-                return;
-            }
-
-            // Convertir l'image en Base64
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const base64Image = e.target.result;
-                // Stocker dans le champ caché
-                $('#ImageData').val(base64Image);
-                // Afficher l'aperçu
-                $('#imagePreview').html(`<img src="${base64Image}" class="img-fluid" alt="Aperçu"/>`);
-            };
-            reader.onerror = function() {
-                alert('Erreur lors de la lecture du fichier');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    initImageUploaders()
 
     $('#NouvelleForm').on("submit", async function (event) {
         event.preventDefault();
+        // On fusionne les données du formulaire (getFormData) avec l'objet Nouvelle existant
+        // pour s'assurer de conserver les champs qui ne sont pas dans le formulaire, comme l'Id.
+        // Notons que le champ 'Creation' est maintenant dans le formulaire (en caché).
         let Nouvelle = getFormData($("#NouvelleForm"));
+        let imageValue = $('#Image').val();
+
+        if (imageValue) {
+            Nouvelle.Image = imageValue;
+        }
 
         // Vérifier qu'une image a été sélectionnée si c'est une création
         if (create && !Nouvelle.Image) {
@@ -348,13 +365,14 @@ function renderNouvelleForm(Nouvelle = null) {
         }
 
         Nouvelle = await Nouvelles_API.Save(Nouvelle, create);
+
+
         if (!Nouvelles_API.error) {
             ShowNouvelles();
             await pageManager.update();
             compileCategories();
             pageManager.scrollToElem(Nouvelle.Id);
-        }
-        else
+        } else
             renderError("Une erreur est survenue!");
     });
 
@@ -362,6 +380,7 @@ function renderNouvelleForm(Nouvelle = null) {
         ShowNouvelles();
     });
 }
+
 function makeFavicon(url, big = false) {
     // Utiliser l'API de google pour extraire le favicon du site pointé par url
     // retourne un élément div comportant le favicon en tant qu'image de fond
@@ -372,17 +391,19 @@ function makeFavicon(url, big = false) {
     url = "http://www.google.com/s2/favicons?sz=64&domain=" + url;
     return `<div class="${faviconClass}" style="background-image: url('${url}');"></div>`;
 }
+
 function renderNouvelle(Nouvelle) {
-    //let favicon = makeFavicon(Nouvelle.Url);
     let nouvelleElement = $(`
     <div class="NouvelleRow" id='${Nouvelle.Id}'>
         <div class="NouvelleContainer noselect">
             <div class="NouvelleLayout">
+            <img class="NouvelleImage" src="${Nouvelle.Image}" alt="Image pour ${Nouvelle.Title}">
                 <div class="NouvelleCategory">
                     
                     <span class="NouvelleTitle">${Nouvelle.Title}</span>
                 </div>
                 <span class="NouvelleCategory">${Nouvelle.Category}</span>
+                <span class="NouvelleDate">${convertToFrenchDate(Nouvelle.Creation)}</span>
             </div>
             <div class="NouvelleCommandPanel">
                 <span class="editCmd cmdIcon fa fa-pencil" editNouvelleId="${Nouvelle.Id}" title="Modifier ${Nouvelle.Title}"></span>
@@ -401,4 +422,22 @@ function renderNouvelle(Nouvelle) {
     });
 
     return nouvelleElement;
+}
+
+function convertToFrenchDate(numeric_date) {
+    const date = new Date(numeric_date);
+    const options = {year: 'numeric', month: 'long', day: 'numeric'};
+    const opt_weekday = {weekday: 'long'};
+    const weekday = toTitleCase(date.toLocaleDateString("fr-FR", opt_weekday));
+
+    function toTitleCase(str) {
+        return str.replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
+    }
+
+    const timeString = date.toLocaleTimeString("fr-FR");
+    const dateString = date.toLocaleDateString("fr-FR", options);
+
+    return `${weekday} le ${dateString} à ${timeString}`;
 }

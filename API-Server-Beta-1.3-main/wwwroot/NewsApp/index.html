@@ -18,21 +18,49 @@
 <body>
     <div id="main">
         <div id="header">
+            <!-- Logo -->
             <img src="bookmark_logo.png" class="appLogo" alt="" title="Fil de nouvelles">
-            <h4 id="actionTitle">Fil de nouvelles</h4>
-            <i class="cmdIcon fa fa-plus" id="createNouvelle" title="Ajouter une nouvelle"></i>
-            <i class="cmdIcon fa fa-times" id="abort" title="Annuler"></i>
-            <div class="dropdown ms-auto" id="categoriesMenu">
-                <div data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="cmdIcon fa fa-ellipsis-vertical"></i>
+
+            <!-- Titre -->
+            <h4 id="actionTitle" class="m-0">Fil de nouvelles</h4>
+
+            <!-- Icônes à droite -->
+            <div class="header-right ms-auto">
+
+                <div id="search" >
+                    <i for="searchCmd" id="doSearch" class="cmdIcon fa fa-search"></i>
+                    <input type="search" id="searchCmd" placeholder="Rechercher" />
+
                 </div>
-                <div class="dropdown-menu noselect" id="DDMenu">
-                    <div class="dropdown-item menuItemLayout" id="aboutCmd">
-                        <i class="menuIcon fa fa-info-circle mx-2"></i> À propos...
+                <!-- Ajouter -->
+                <button type="button" class="cmdIcon fa fa-plus"  id="createNouvelle" title="Ajouter une nouvelle">
+                </button>
+
+                <!-- Valider / Enregistrer -->
+                <button type="submit" class=" cmdIcon fa fa-check"  id="saveNouvelle" form="NouvelleForm" title="Soumettre">
+                </button>
+
+                <!-- Supprimer -->
+                <button type="button" class="cmdIcon fa fa-check" id="deleteNouvelle" title="Supprimer">
+                </button>
+
+                <!-- Annuler / Fermer -->
+                <button type="button" class="cmdIcon fa fa-times"  id="cancel" title="Annuler">
+                </button>
+
+                <!-- Menu -->
+                <div class="dropdown" id="categoriesMenu">
+                    <button class="cmdIcon fa fa-ellipsis-vertical " data-bs-toggle="dropdown" aria-expanded="false" title="Menu">
+                    </button>
+                    <div class="dropdown-menu noselect" id="DDMenu">
+                        <div class="dropdown-item menuItemLayout" id="aboutCmd">
+                            <i class="menuIcon fa fa-info-circle mx-2"></i> À propos...
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div id="content">
             <div id="scrollPanel">
                 <div id="itemsPanel">
@@ -44,6 +72,7 @@
                                     <span class="NouvelleTitle">sample</span>
                                 </div>
                                 <span class="NouvelleCategory">sample Category</span>
+                                <span class="NouvelleDate">sample Date</span>
                             </div>
                             <div class="NouvelleCommandPanel">
                                 <span class="editCmd cmdIcon fa fa-pencil" editNouvelleId="${Nouvelle.Id}"
@@ -81,6 +110,7 @@
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script src="js/Nouvelles_API.js"></script>
     <script src="js/pageManager.js"></script>
+    <script src="js/ImageControl.js"></script>
     <script src="js/validation.js"></script>
     <script src="js/appUI.js"></script>
 

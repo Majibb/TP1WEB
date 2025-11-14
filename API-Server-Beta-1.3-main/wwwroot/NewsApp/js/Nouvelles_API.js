@@ -104,4 +104,14 @@ class Nouvelles_API {
             });
         });
     }
+    static getWords(query = "") {
+        Nouvelles_API.initHttpState();
+        return new Promise(resolve => {
+            $.ajax({
+                url: API_URL + query,
+                success: words => { resolve(words); },
+                error: (xhr) => { Nouvelles_API.setHttpErrorState(xhr); resolve(null); }
+            });
+        });
+    }
 }

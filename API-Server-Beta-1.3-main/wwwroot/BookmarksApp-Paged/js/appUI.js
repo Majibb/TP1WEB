@@ -208,6 +208,7 @@ async function renderDeleteBookmarkForm(id) {
                     await pageManager.update();
                     compileCategories();
                 }
+
                 else {
                     console.log(Bookmarks_API.currentHttpError)
                     renderError("Une erreur est survenue!");
