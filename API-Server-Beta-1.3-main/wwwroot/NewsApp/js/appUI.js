@@ -340,7 +340,7 @@ function renderNouvelleForm(Nouvelle = null) {
 
             <label for="Title" class="form-label">Titre </label>
             <input 
-                class="form-control"
+                class="form-control Alpha"
                 name="Title" 
                 id="Title" 
                 placeholder="Titre"
@@ -361,10 +361,13 @@ function renderNouvelleForm(Nouvelle = null) {
             
            <!-- nécessite le fichier javascript 'imageControl.js' -->
             <label for="Image" class="form-label">Image </label>
-             <div   class='imageUploader' 
+            <div   class='imageUploader' 
                    newImage='${create}' 
                    controlId='Image' 
-                   imageSrc='${Nouvelle.Image}' 
+                   imageSrc='${
+                     Nouvelle.Image ||
+                     "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                   }' 
                    waitingImage="Loading_icon.gif">
             </div>
             
@@ -372,24 +375,37 @@ function renderNouvelleForm(Nouvelle = null) {
          
         </form>
     `);
-    initImageUploaders()
-    initFormValidation();
 
+  initFormValidation();
+  initImageUploaders();
 
-    $('#NouvelleForm').on("submit", async function (event) {
-        event.preventDefault();
-        let Nouvelle = getFormData($("#NouvelleForm"));
-        let imageValue = $('#Image').val();
+  $("#NouvelleForm").on("submit", async function (event) {
+    event.preventDefault();
+    // On fusionne les données du formulaire (getFormData) avec l'objet Nouvelle existant
+    // pour s'assurer de conserver les champs qui ne sont pas dans le formulaire, comme l'Id.
+    // Notons que le champ 'Creation' est maintenant dans le formulaire (en caché).
+    let Nouvelle = getFormData($("#NouvelleForm"));
+    let imageValue = $("#Image").val();
 
-        if (imageValue) {
-            Nouvelle.Image = imageValue;
-        }
-        Nouvelle = await Nouvelles_API.Save(Nouvelle, create);
-        if (create && !Nouvelle.Image) {
-            alert('Veuillez sélectionner une image');
-            return;
-        }
+    if (imageValue) {
+      Nouvelle.Image = imageValue;
+    }
 
+    // Vérifier qu'une image a été sélectionnée si c'est une création
+    if (create && !Nouvelle.Image) {
+      alert("Veuillez sélectionner une image");
+      return;
+    }
+
+    Nouvelle = await Nouvelles_API.Save(Nouvelle, create);
+
+    if (!Nouvelles_API.error) {
+      ShowNouvelles();
+      await pageManager.update();
+      compileCategories();
+      pageManager.scrollToElem(Nouvelle.Id);
+    } else renderError("Une erreur est survenue!");
+  });
 
   $("#cancel").on("click", function () {
     ShowNouvelles();
@@ -429,17 +445,11 @@ function renderNouvelle(Nouvelle) {
                   Nouvelle.Image
                 }" alt="Image pour ${Nouvelle.Title}">
                 <div class="NouvelleHeader">
-                    <span class="NouvelleTitle postTitle">${
-                      Nouvelle.Title
-                    }</span>
+                    <span class="NouvelleTitle postTitle">${Nouvelle.Title}</span>
                     <span class="NouvelleCategory">${Nouvelle.Category}</span>
-                    <span class="NouvelleDate">${convertToFrenchDate(
-                      Nouvelle.Creation
-                    )}</span>
+                    <span class="NouvelleDate">${convertToFrenchDate(Nouvelle.Creation)}</span>
                 </div>
-                <span class="NouvelleCategory">${Nouvelle.Category}</span>
-                <span class="NouvelleDate">${Nouvelle.Text}</span>
-                <span class="NouvelleDate">${convertToFrenchDate(Nouvelle.Creation)}</span>
+                ${textSection}
             </div>
             <div class="NouvelleCommandPanel">
                 <span class="editCmd cmdIcon fa fa-pencil" editNouvelleId="${
@@ -530,7 +540,7 @@ function installNouvelleTextToggle(nouvelleElement) {
 }
 
 function highlight(text, elem) {
-  text = text.trim();
+  text = text.trim().toLocaleLowerCase();
   if (text.length >= minKeywordLength) {
     var innerHTML = elem.innerHTML;
     let startIndex = 0;
