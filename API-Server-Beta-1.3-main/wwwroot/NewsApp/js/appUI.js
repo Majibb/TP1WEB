@@ -99,6 +99,8 @@ function ShowNouvelles() {
   $("#saveNouvelle").hide();
   $("#deleteNouvelle").hide();
   $("#cancel").hide();
+  $("#searchCmd").show();
+  $("#doSearch").show();
 
   Nouvelles_API.resume_Periodic_Refresh();
 }
@@ -112,6 +114,7 @@ function hideNouvelles() {
   $("#saveNouvelle").show();
   $("#cancel").show();
   $("#deleteNouvelle").hide();
+  $("#doSearch").hide();
 
   Nouvelles_API.stop_Periodic_Refresh();
 }

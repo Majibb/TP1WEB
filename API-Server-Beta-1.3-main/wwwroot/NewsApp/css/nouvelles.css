@@ -110,3 +110,12 @@
 .highlight {
     background-color: yellow;
 }
+@media screen and (min-width:350px) {
+
+    .NouvelleImage {
+        margin-left: 15px;
+        width: 350px;
+
+    }
+}
+
