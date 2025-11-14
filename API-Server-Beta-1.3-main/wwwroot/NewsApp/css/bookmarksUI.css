@@ -54,7 +54,59 @@
 .BookmarkdeleteForm {
     margin: 20px;
 }
+
 .NouvelleImage {
     width: 70%;
     height: 300px;
+}
+
+.NouvelleHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.NouvelleText {
+    color: #222;
+    line-height: 1.5;
+}
+
+.NouvelleTextToggle {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.textToggle {
+    font-size: 1.3rem;
+    color: rgb(0, 87, 204);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 50%;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.textToggle:hover {
+    background: rgba(0, 87, 204, 0.1);
+}
+
+.textToggle.disabled {
+    opacity: 0.35;
+    cursor: default;
+    background: none;
+}
+
+.hideExtra {
+    overflow: hidden;
+    max-height: 7.5rem;
+    text-overflow: ellipsis;
+}
+
+.showExtra {
+    height: auto;
+    max-height: none;
+}
+
+.highlight {
+    background-color: yellow;
 }

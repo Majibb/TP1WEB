@@ -57,6 +57,27 @@
     gap: 10px;            /* espace entre boutons */
 }
 
+#search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+}
+
+#searchCmd {
+    width: 180px;
+    transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+#search.searchCollapsed #searchCmd {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    border: none;
+    margin: 0;
+    pointer-events: none;
+}
+
 
 #content {
     height: 1px;
