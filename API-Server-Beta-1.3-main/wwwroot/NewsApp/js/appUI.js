@@ -189,7 +189,7 @@ async function compileCategories() {
 async function renderNouvelles(container, queryString) {
   deleteError();
   let endOfData = false;
-  queryString += "&sort=category,title";
+  queryString += "&sort=-Creation,title";
   if (selectedCategory != "") queryString += "&category=" + selectedCategory;
   if (search != "") queryString += "&keywords=" + search;
   addWaitingGif();
@@ -252,8 +252,6 @@ async function renderDeleteNouvelleForm(id) {
   if (!Nouvelles_API.error) {
     let Nouvelle = response.data;
     if (Nouvelle !== null) {
-      const deleteText = convertTextToHtml(Nouvelle.Text || "");
-      const deleteDate = convertToFrenchDate(Nouvelle.Creation);
 
       $("#nouvelleForm").append(`
             <div class="NouvelledeleteForm">
@@ -266,9 +264,9 @@ async function renderDeleteNouvelleForm(id) {
                             <div class="NouvelleHeader">
                                 <span class="NouvelleTitle">${Nouvelle.Title}</span>
                                 <span class="NouvelleCategory">${Nouvelle.Category}</span>
-                                <span class="NouvelleDate">${deleteDate}</span>
+                                <span class="NouvelleDate">${convertToFrenchDate(Nouvelle.Creation)}</span>
                             </div>
-                            <div class="NouvelleText showExtra">${deleteText}</div>
+                            <div class="NouvelleText showExtra">${convertTextToHtml(Nouvelle.Text || "")}</div>
                         </div>
                      </div>
                 </div>   
@@ -321,7 +319,10 @@ function newNouvelle() {
 function renderNouvelleForm(Nouvelle = null) {
   hideNouvelles();
   let create = Nouvelle == null;
-  if (create) Nouvelle = newNouvelle();
+  if (create) {
+      Nouvelle = newNouvelle();
+      Nouvelle.Image = "/news-logo.png";
+  }
   $("#actionTitle").text(create ? "Création" : "Modification");
   $("#nouvelleForm").show();
   $("#nouvelleForm").empty();
@@ -353,24 +354,22 @@ function renderNouvelleForm(Nouvelle = null) {
             
             <label for="Text" class="form-label">Texte </label>
             <textarea 
-                class="form-control"
+                class="form-control NouvelleTextContaint"
                 name="Text" 
                 id="Text" 
                 placeholder="Texte"
                 rows="4"
                 required
-                RequireMessage="Veuillez entrer un texte"
-            >${Nouvelle.Text}</textarea>
+                RequireMessage="Veuillez entrer un texte"> 
+                ${Nouvelle.Text}
+            </textarea>
             
            <!-- nécessite le fichier javascript 'imageControl.js' -->
             <label for="Image" class="form-label">Image </label>
             <div   class='imageUploader' 
                    newImage='${create}' 
                    controlId='Image' 
-                   imageSrc='${
-                     Nouvelle.Image ||
-                     "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                   }' 
+                   imageSrc='${Nouvelle.Image}' 
                    waitingImage="Loading_icon.gif">
             </div>
             
@@ -378,23 +377,18 @@ function renderNouvelleForm(Nouvelle = null) {
          
         </form>
     `);
-
-  initFormValidation();
   initImageUploaders();
+  initFormValidation();
+
 
   $("#NouvelleForm").on("submit", async function (event) {
     event.preventDefault();
-    // On fusionne les données du formulaire (getFormData) avec l'objet Nouvelle existant
-    // pour s'assurer de conserver les champs qui ne sont pas dans le formulaire, comme l'Id.
-    // Notons que le champ 'Creation' est maintenant dans le formulaire (en caché).
     let Nouvelle = getFormData($("#NouvelleForm"));
     let imageValue = $("#Image").val();
 
     if (imageValue) {
       Nouvelle.Image = imageValue;
     }
-
-    // Vérifier qu'une image a été sélectionnée si c'est une création
     if (create && !Nouvelle.Image) {
       alert("Veuillez sélectionner une image");
       return;
@@ -414,25 +408,12 @@ function renderNouvelleForm(Nouvelle = null) {
     ShowNouvelles();
   });
 }
-
-function makeFavicon(url, big = false) {
-  // Utiliser l'API de google pour extraire le favicon du site pointé par url
-  // retourne un élément div comportant le favicon en tant qu'image de fond
-  ///////////////////////////////////////////////////////////////////////////
-  if (url.slice(-1) != "/") url += "/";
-  let faviconClass = "favicon";
-  if (big) faviconClass = "big-favicon";
-  url = "http://www.google.com/s2/favicons?sz=64&domain=" + url;
-  return `<div class="${faviconClass}" style="background-image: url('${url}');"></div>`;
-}
-
 function renderNouvelle(Nouvelle) {
   const hasText = (Nouvelle.Text || "").trim().length > 0;
   const textSection = hasText
     ? `
                 <div class="NouvelleText postText hideExtra">${convertTextToHtml(
-                  Nouvelle.Text || ""
-                )}</div>
+                  Nouvelle.Text || "")}</div>
                 <div class="NouvelleTextToggle">
                     <span class="textToggle expandText fa-solid fa-angles-down" title="Agrandir le texte"></span>
                     <span class="textToggle collapseText fa-solid fa-angles-up" title="Reduire le texte"></span>
@@ -444,23 +425,17 @@ function renderNouvelle(Nouvelle) {
     <div class="NouvelleRow" id='${Nouvelle.Id}'>
         <div class="NouvelleContainer noselect">
             <div class="NouvelleLayout">
-                <img class="NouvelleImage" src="${
-                  Nouvelle.Image
-                }" alt="Image pour ${Nouvelle.Title}">
+            <span class="NouvelleCategory">${Nouvelle.Category}</span>
+                <img class="NouvelleImage " src="${Nouvelle.Image}" alt="Image pour ${Nouvelle.Title}">
                 <div class="NouvelleHeader">
                     <span class="NouvelleTitle postTitle">${Nouvelle.Title}</span>
-                    <span class="NouvelleCategory">${Nouvelle.Category}</span>
                     <span class="NouvelleDate">${convertToFrenchDate(Nouvelle.Creation)}</span>
                 </div>
                 ${textSection}
             </div>
             <div class="NouvelleCommandPanel">
-                <span class="editCmd cmdIcon fa fa-pencil" editNouvelleId="${
-                  Nouvelle.Id
-                }" title="Modifier ${Nouvelle.Title}"></span>
-                <span class="deleteCmd cmdIcon fa fa-trash" deleteNouvelleId="${
-                  Nouvelle.Id
-                }" title="Effacer ${Nouvelle.Title}"></span>
+                <span class="editCmd cmdIcon fa fa-pencil" editNouvelleId="${Nouvelle.Id}" title="Modifier ${Nouvelle.Title}"></span>
+                <span class="deleteCmd cmdIcon fa fa-trash" deleteNouvelleId="${Nouvelle.Id}" title="Effacer ${Nouvelle.Title}"></span>
             </div>
         </div>
     </div>
@@ -480,112 +455,126 @@ function renderNouvelle(Nouvelle) {
 }
 
 function convertToFrenchDate(numeric_date) {
-  const date = new Date(numeric_date);
-  const options = { year: "numeric", month: "long", day: "numeric" };
-  const opt_weekday = { weekday: "long" };
-  const weekday = toTitleCase(date.toLocaleDateString("fr-FR", opt_weekday));
+    let date = new Date(numeric_date);
+    var options = {year: 'numeric', month: 'long', day: 'numeric'};
+    var opt_weekday = {weekday: 'long'};
+    var weekday = toTitleCase(date.toLocaleDateString("fr-FR", opt_weekday));
 
-  function toTitleCase(str) {
-    return str.replace(/\w\S*/g, function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
-  }
+    function toTitleCase(str) {
+        return str.replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
+    }
 
-  const timeString = date.toLocaleTimeString("fr-FR");
-  const dateString = date.toLocaleDateString("fr-FR", options);
-
-  return `${weekday} le ${dateString} à ${timeString}`;
+    return weekday + " le " + date.toLocaleDateString("fr-FR", options) + " a " + date.toLocaleTimeString("fr-FR");
 }
-function convertTextToHtml(value = "") {
-  return value.split("\n").join("<br>");
+
+function convertTextToHtml(text) {
+    return text.replace(/\n/g, '<br>');
+}
+
+function UTC_To_Local(UTC_numeric_date) {
+    let UTC_Offset = new Date().getTimezoneOffset() / 60;
+    let UTC_Date = new Date(UTC_numeric_date);
+    UTC_Date.setHours(UTC_Date.getHours() - UTC_Offset);
+    let Local_numeric_date = UTC_Date.getTime();
+    return Local_numeric_date;
+}
+
+function Local_to_UTC(Local_numeric_date) {
+    let UTC_Offset = new Date().getTimezoneOffset() / 60;
+    let Local_Date = new Date(Local_numeric_date);
+    Local_Date.setHours(Local_Date.getHours() + UTC_Offset);
+    let UTC_numeric_date = Local_Date.getTime();
+    return UTC_numeric_date;
 }
 
 function installNouvelleTextToggle(nouvelleElement) {
-  const textBlock = nouvelleElement.find(".postText");
-  const expandCtrl = nouvelleElement.find(".expandText");
-  const collapseCtrl = nouvelleElement.find(".collapseText");
+    const textBlock = nouvelleElement.find(".postText");
+    const expandCtrl = nouvelleElement.find(".expandText");
+    const collapseCtrl = nouvelleElement.find(".collapseText");
 
-  if (
-    textBlock.length === 0 ||
-    expandCtrl.length === 0 ||
-    collapseCtrl.length === 0
-  ) {
-    return;
-  }
-
-  const setState = (expanded) => {
-    if (expanded) {
-      textBlock.removeClass("hideExtra").addClass("showExtra");
-    } else {
-      textBlock.removeClass("showExtra").addClass("hideExtra");
+    if (
+        textBlock.length === 0 ||
+        expandCtrl.length === 0 ||
+        collapseCtrl.length === 0
+    ) {
+        return;
     }
-    expandCtrl.toggleClass("disabled", expanded);
-    collapseCtrl.toggleClass("disabled", !expanded);
-  };
 
-  expandCtrl.on("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!expandCtrl.hasClass("disabled")) {
-      setState(true);
-    }
-  });
+    const setState = (expanded) => {
+        if (expanded) {
+            textBlock.removeClass("hideExtra").addClass("showExtra");
+        } else {
+            textBlock.removeClass("showExtra").addClass("hideExtra");
+        }
+        expandCtrl.toggleClass("disabled", expanded);
+        collapseCtrl.toggleClass("disabled", !expanded);
+    };
 
-  collapseCtrl.on("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!collapseCtrl.hasClass("disabled")) {
-      setState(false);
-    }
-  });
+    expandCtrl.on("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!expandCtrl.hasClass("disabled")) {
+            setState(true);
+        }
+    });
 
-  setState(false);
+    collapseCtrl.on("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!collapseCtrl.hasClass("disabled")) {
+            setState(false);
+        }
+    });
+
+    setState(false);
 }
 
 function highlight(text, elem) {
-  text = text.trim().toLocaleLowerCase();
-  if (text.length >= minKeywordLength) {
-    var innerHTML = elem.innerHTML;
-    let startIndex = 0;
+    text = text.trim().toLocaleLowerCase();
+    if (text.length >= minKeywordLength) {
+        var innerHTML = elem.innerHTML;
+        let startIndex = 0;
 
-    while (startIndex < innerHTML.length) {
-      var normalizedHtml = innerHTML
-        .toLocaleLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      var index = normalizedHtml.indexOf(text, startIndex);
-      let highLightedText = "";
-      if (index >= startIndex) {
-        highLightedText =
-          "<span class='highlight'>" +
-          innerHTML.substring(index, index + text.length) +
-          "</span>";
-        innerHTML =
-          innerHTML.substring(0, index) +
-          highLightedText +
-          innerHTML.substring(index + text.length);
-        startIndex = index + highLightedText.length + 1;
-      } else startIndex = innerHTML.length + 1;
+        while (startIndex < innerHTML.length) {
+            var normalizedHtml = innerHTML
+                .toLocaleLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+            var index = normalizedHtml.indexOf(text, startIndex);
+            let highLightedText = "";
+            if (index >= startIndex) {
+                highLightedText =
+                    "<span class='highlight'>" +
+                    innerHTML.substring(index, index + text.length) +
+                    "</span>";
+                innerHTML =
+                    innerHTML.substring(0, index) +
+                    highLightedText +
+                    innerHTML.substring(index + text.length);
+                startIndex = index + highLightedText.length + 1;
+            } else startIndex = innerHTML.length + 1;
+        }
+        elem.innerHTML = innerHTML;
     }
-    elem.innerHTML = innerHTML;
-  }
 }
 
 function highlightKeywords() {
-  showKeywords = search.trim().length > 0;
-  if (showKeywords) {
-    let keywords = $("#searchCmd").val().split(" ");
-    if (keywords.length > 0) {
-      keywords.forEach((key) => {
-        let titles = document.getElementsByClassName("postTitle");
-        Array.from(titles).forEach((title) => {
-          highlight(key, title);
-        });
-        let texts = document.getElementsByClassName("postText");
-        Array.from(texts).forEach((textElem) => {
-          highlight(key, textElem);
-        });
-      });
+    showKeywords = search.trim().length > 0;
+    if (showKeywords) {
+        let keywords = $("#searchCmd").val().split(" ");
+        if (keywords.length > 0) {
+            keywords.forEach((key) => {
+                let titles = document.getElementsByClassName("postTitle");
+                Array.from(titles).forEach((title) => {
+                    highlight(key, title);
+                });
+                let texts = document.getElementsByClassName("postText");
+                Array.from(texts).forEach((textElem) => {
+                    highlight(key, textElem);
+                });
+            });
+        }
     }
-  }
 }

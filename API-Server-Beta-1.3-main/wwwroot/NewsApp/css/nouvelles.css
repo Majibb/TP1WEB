@@ -7,12 +7,17 @@
 
 .NouvelleContainer {
     display: grid;
-    grid-template-columns: 4fr 1fr;
-    align-items: top;
-    background-color: #eee;
-    border-radius: 6px;
-}
 
+    background-color: #eee;
+    border-radius: 8px;
+    width:80% ;
+    margin-left: 10%;
+    margin-right: 10%;
+
+}
+.NouvelleDate {
+    color: #4684bc;
+}
 .NouvelleContainer .cmdIcon {
     display: none;
 }
@@ -41,7 +46,11 @@
 }
 
 .NouvelleCategory {
-    color: dodgerblue !important;
+    color: #243d53 !important;
+    background-color: #e3baba;
+    border-radius: 5px;
+    width: fit-content;
+
 }
 
 .NouvelleCommandPanel {
@@ -56,8 +65,8 @@
 }
 
 .NouvelleImage {
-    width: 70%;
-    height: 300px;
+    width: 700px;
+    height: 350px;
 }
 
 .NouvelleHeader {
@@ -69,6 +78,9 @@
 .NouvelleText {
     color: #222;
     line-height: 1.5;
+}
+.NouvelleTextContaint {
+    height: 300px
 }
 
 .NouvelleTextToggle {
@@ -113,9 +125,12 @@
 @media screen and (min-width:350px) {
 
     .NouvelleImage {
-        margin-left: 15px;
-        width: 350px;
 
+        width: 100%;
+
+    }
+    .NouvelleContainer{
+        margin-right: 10%;
     }
 }
 

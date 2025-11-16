@@ -158,6 +158,9 @@
 .appLogo {
     height: 40px;
 }
+.NouvelleImage {
+    width:800px;
+}
 
 @media screen and (min-width:650px) {
 
